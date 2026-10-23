@@ -4,49 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src https://api.github.com https://uploads.github.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app; base-uri 'none'; form-action 'none'">
-<meta name="referrer" content="no-referrer">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="noindex,nofollow">
 <title>Subir APK a GitHub</title>
 <style>
   :root{--bg:#f4f6f9;--card:#fff;--tx:#1b2430;--mut:#6b7686;--bd:#e2e7ee;--pri:#2563eb;--pri2:#1d4ed8;--ok:#16a34a;--err:#dc2626}
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx)}
-  header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--bd)}
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:14px 24px;background:var(--card);border-bottom:1px solid var(--bd)}
   header h1{font-size:18px;margin:0}
-  .hr{display:flex;gap:8px;align-items:center}
-  main{max-width:900px;margin:24px auto;padding:0 16px;display:grid;gap:20px}
+  .hr{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  main{max-width:960px;margin:24px auto;padding:0 16px;display:grid;gap:20px}
   .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px}
   .card h2{margin:0 0 14px;font-size:16px}
+  .head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .head h2{margin:0}
   label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
   input,textarea,select{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;font:inherit;background:#fff;color:var(--tx)}
+  input:focus,textarea:focus,select:focus,button:focus-visible,.drop:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
   input[readonly]{background:#f1f5f9}
+  input[type=checkbox]{width:auto}
   textarea{min-height:70px;resize:vertical}
   button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:#fff;color:var(--tx);padding:9px 16px;border-radius:8px}
   button.pri{background:var(--pri);border-color:var(--pri);color:#fff}
   button.pri:hover{background:var(--pri2)}
+  button.danger{background:var(--err);border-color:var(--err);color:#fff}
+  button.sm{padding:5px 10px;font-size:13px}
   button:disabled{opacity:.55;cursor:not-allowed}
   .link{border:0;background:none;color:var(--pri);padding:0;text-decoration:underline;font-size:13px}
   .row{display:flex;gap:8px;align-items:center}
   .row>input{flex:1}
-  .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mut);margin-top:12px}
+  .chk input{margin:0}
+  .actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:16px}
   .drop{border:2px dashed var(--bd);border-radius:10px;padding:22px;text-align:center;color:var(--mut);cursor:pointer}
   .drop.over{border-color:var(--pri);background:#eff6ff}
   .bar{height:8px;background:#e5e9f0;border-radius:99px;overflow:hidden;margin-top:12px;display:none}
   .bar i{display:block;height:100%;width:0;background:var(--pri);transition:width .15s}
-  .msg{margin-top:12px;font-size:14px;min-height:20px}
+  .msg{margin-top:12px;font-size:14px;min-height:20px;word-break:break-word}
   .ok{color:var(--ok)}.err{color:var(--err)}
   table{width:100%;border-collapse:collapse;font-size:14px}
   th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--bd);vertical-align:top}
   th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase}
-  td.url{max-width:260px;word-break:break-all;font-size:12px}
+  td.url{max-width:240px;word-break:break-all;font-size:12px}
+  td.acc{white-space:nowrap}
   .small{font-size:12px;color:var(--mut)}
   .hidden{display:none!important}
+  #buscar{max-width:240px}
   #login{max-width:380px;margin:12vh auto;padding:0 16px}
   .modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
   .modal.open{display:flex}
   .modal .box{background:#fff;border-radius:12px;padding:22px;width:100%;max-width:520px;max-height:92vh;overflow:auto}
   .modal h3{margin:0 0 4px}
-  code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px;word-break:break-all}
+  code,.mono{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px;word-break:break-all}
+  .snip{font-family:ui-monospace,Consolas,monospace;font-size:12px;min-height:60px}
 </style>
 </head>
 <body>
@@ -55,11 +66,15 @@
 <div id="login">
   <div class="card">
     <h2>Iniciar sesión</h2>
-    <label>Correo</label>
+    <label for="lgEmail">Correo</label>
     <input id="lgEmail" type="email" autocomplete="username">
-    <label>Contraseña</label>
-    <input id="lgPass" type="password" autocomplete="current-password">
-    <div class="msg" id="lgMsg"></div>
+    <label for="lgPass">Contraseña</label>
+    <div class="row">
+      <input id="lgPass" type="password" autocomplete="current-password">
+      <button id="btnVer" type="button" class="sm">Ver</button>
+    </div>
+    <label class="chk"><input id="lgKeep" type="checkbox"> Mantener la sesión en este equipo (solo equipos tuyos)</label>
+    <div class="msg" id="lgMsg" role="status"></div>
     <div class="actions" style="justify-content:space-between;align-items:center">
       <button class="link" id="btnConn" type="button">Configurar conexión Firebase</button>
       <button class="pri" id="btnEntrar" type="button">Entrar</button>
@@ -83,23 +98,23 @@
       <h2>Nueva aplicación</h2>
 
       <label>Archivo .apk</label>
-      <div class="drop" id="drop">Arrastra el archivo aquí o haz clic para elegirlo<br><span class="small" id="fileInfo"></span></div>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Elegir archivo APK">Arrastra el archivo aquí o haz clic para elegirlo<br><span class="small" id="fileInfo"></span></div>
       <input type="file" id="file" accept=".apk" hidden>
 
-      <label>Nombre</label>
+      <label for="nombre">Nombre</label>
       <input id="nombre" maxlength="100" placeholder="Ej. Go TV v1.2">
 
-      <label>Nota</label>
+      <label for="nota">Nota</label>
       <textarea id="nota" maxlength="1000" placeholder="Información de esta versión…"></textarea>
 
-      <label>URL de descarga directa (se llena sola)</label>
+      <label for="url">URL de descarga directa (se llena sola)</label>
       <div class="row">
         <input id="url" readonly placeholder="Aparecerá al terminar de subir">
         <button id="btnCopiar" type="button">Copiar</button>
       </div>
 
       <div class="bar" id="bar"><i id="barFill"></i></div>
-      <div class="msg" id="msg"></div>
+      <div class="msg" id="msg" role="status"></div>
 
       <div class="actions">
         <button id="btnCancelar" type="button">Cancelar</button>
@@ -108,7 +123,10 @@
     </section>
 
     <section class="card">
-      <h2>Guardados en Firebase</h2>
+      <div class="head">
+        <h2>Guardados en Firebase <span class="small" id="conteo"></span></h2>
+        <input id="buscar" type="search" placeholder="Buscar por nombre o nota…" aria-label="Buscar">
+      </div>
       <div style="overflow:auto">
         <table>
           <thead><tr><th>Nombre</th><th>Nota</th><th>URL directa</th><th>Fecha</th><th></th></tr></thead>
@@ -120,13 +138,13 @@
 </div>
 
 <!-- CONEXIÓN FIREBASE -->
-<div class="modal" id="modalConn">
+<div class="modal" id="modalConn" role="dialog" aria-modal="true" aria-label="Conexión Firebase">
   <div class="box">
     <h3>Conexión Firebase</h3>
     <div class="small">Estos datos no son secretos. Se guardan en este navegador.</div>
-    <label>Web API Key</label>
+    <label for="cnKey">Web API Key</label>
     <input id="cnKey" placeholder="AIza…">
-    <label>URL de Realtime Database</label>
+    <label for="cnDb">URL de Realtime Database</label>
     <input id="cnDb" placeholder="https://tu-proyecto-default-rtdb.firebaseio.com">
     <div class="msg" id="cnMsg"></div>
     <div class="actions">
@@ -136,49 +154,96 @@
   </div>
 </div>
 
-<!-- AJUSTES GITHUB -->
-<div class="modal" id="modal">
+<!-- AJUSTES -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Ajustes de GitHub">
   <div class="box">
     <h3>Ajustes de GitHub</h3>
     <div class="small">Se guardan en tu Firebase, en una ruta que solo tu cuenta puede leer. No quedan en el navegador.</div>
 
-    <label>Token de GitHub</label>
+    <label for="cfgToken">Token de GitHub</label>
     <input id="cfgToken" type="password" autocomplete="off" placeholder="github_pat_…">
 
-    <label>Usuario u organización (owner)</label>
+    <label for="cfgOwner">Usuario u organización (owner)</label>
     <input id="cfgOwner" placeholder="tu-usuario">
 
-    <label>Repositorio (público)</label>
+    <label for="cfgRepo">Repositorio (público)</label>
     <input id="cfgRepo" placeholder="mis-apks">
 
-    <label>Método de subida</label>
+    <label for="cfgMetodo">Método de subida</label>
     <select id="cfgMetodo">
       <option value="release">Releases (recomendado, archivos grandes)</option>
-      <option value="contents">Carpeta del repositorio (hasta ~100 MB)</option>
+      <option value="contents">Carpeta del repositorio (hasta ~75 MB)</option>
     </select>
 
     <div id="cfgContentsBox" class="hidden">
-      <label>Rama</label>
+      <label for="cfgBranch">Rama</label>
       <input id="cfgBranch" placeholder="main">
-      <label>Carpeta</label>
+      <label for="cfgCarpeta">Carpeta</label>
       <input id="cfgCarpeta" placeholder="apks">
     </div>
 
-    <label>Tu UID de Firebase (para las reglas)</label>
+    <label for="cfgUid">Tu UID de Firebase (para las reglas)</label>
     <input id="cfgUid" readonly>
 
-    <div class="msg" id="cfgMsg"></div>
+    <div id="cfgFijarBox">
+      <label for="cfgFijar">Fijar la conexión en el código (así no la pide en otros navegadores)</label>
+      <textarea id="cfgFijar" class="snip" readonly></textarea>
+      <div class="small">Copia esta línea y reemplaza con ella la línea <code>const FIREBASE_CONFIG</code> de tu <code>index.html</code>.</div>
+      <button id="cfgCopiarLinea" type="button" class="sm" style="margin-top:8px">Copiar línea</button>
+    </div>
+
+    <div class="msg" id="cfgMsg" role="status"></div>
     <div class="actions">
+      <button id="cfgProbar" type="button">Probar GitHub</button>
       <button id="cfgCerrar" type="button">Cerrar</button>
       <button id="cfgGuardar" class="pri" type="button">Guardar</button>
     </div>
   </div>
 </div>
 
+<!-- EDITAR -->
+<div class="modal" id="modalEd" role="dialog" aria-modal="true" aria-label="Editar aplicación">
+  <div class="box">
+    <h3>Editar aplicación</h3>
+    <label for="edNombre">Nombre</label>
+    <input id="edNombre" maxlength="100">
+    <label for="edNota">Nota</label>
+    <textarea id="edNota" maxlength="1000"></textarea>
+    <div class="msg" id="edMsg" role="status"></div>
+    <div class="actions">
+      <button id="edCerrar" type="button">Cancelar</button>
+      <button id="edGuardar" class="pri" type="button">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUITAR -->
+<div class="modal" id="modalDel" role="dialog" aria-modal="true" aria-label="Quitar aplicación">
+  <div class="box">
+    <h3>Quitar aplicación</h3>
+    <p style="margin:8px 0 0">¿Qué quieres hacer con <b id="delNombre"></b>?</p>
+    <p class="small">Si solo la quitas de la lista, el archivo seguirá en GitHub. Si también lo borras de GitHub, el enlace de descarga dejará de funcionar.</p>
+    <div class="msg" id="delMsg" role="status"></div>
+    <div class="actions">
+      <button id="delCerrar" type="button">Cancelar</button>
+      <button id="delLista" type="button">Solo quitar de la lista</button>
+      <button id="delTodo" type="button" class="danger">Quitar y borrar de GitHub</button>
+    </div>
+  </div>
+</div>
+
 <script>
+/* ============================================================
+   CONEXIÓN FIREBASE — pega aquí tus datos (NO son secretos).
+   Si los dejas vacíos, la página te los pedirá en este navegador.
+   ============================================================ */
+const FIREBASE_CONFIG = { apiKey: "", db: "" };
+
 const $ = id => document.getElementById(id);
-const LS = 'subirApkConexion', SS = 'subirApkSesion';
-let auth = null, gcfg = {}, archivo = null;
+const LS = 'subirApkConexion', SS = 'subirApkSesion', EM = 'subirApkCorreo';
+const IDLE_MS = 30 * 60 * 1000;
+let auth = null, gcfg = {}, archivo = null, registros = {}, keepSession = false;
+let subiendo = false, ctl = null, idleT = null, delId = null, edId = null;
 
 /* ---------- utilidades ---------- */
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -186,28 +251,38 @@ const safeUrl = u => /^https:\/\//.test(u || '') ? u : '#';
 const fmt = b => b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB';
 const limpio = n => n.replace(/[^A-Za-z0-9._-]+/g, '-');
 function say(id, t, cls){ const e = $(id); e.className = 'msg ' + (cls||''); e.textContent = t; }
-function conn(){ try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; } }
-function base(){ return (conn().db || '').replace(/\/+$/, ''); }
+const fijo = () => !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.db);
+function conn(){
+  if(fijo()) return FIREBASE_CONFIG;
+  try{ return JSON.parse(localStorage.getItem(LS)) || {}; }catch(e){ return {}; }
+}
+const base = () => (conn().db || '').replace(/\/+$/, '');
 function dbValida(u){
   try{ const x = new URL(u); return x.protocol === 'https:' && /(\.firebaseio\.com|\.firebasedatabase\.app)$/.test(x.hostname); }
   catch(e){ return false; }
 }
+const abrir = id => { $(id).classList.add('open'); const f = $(id).querySelector('input:not([readonly]):not([type=checkbox]),textarea:not([readonly])'); if(f) f.focus(); };
+const cerrar = id => $(id).classList.remove('open');
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open')); });
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('mousedown', e=>{ if(e.target === m) m.classList.remove('open'); }));
 
 /* ---------- conexión Firebase ---------- */
-$('btnConn').onclick = ()=>{ const c = conn(); $('cnKey').value = c.apiKey||''; $('cnDb').value = c.db||''; say('cnMsg',''); $('modalConn').classList.add('open'); };
-$('cnCerrar').onclick = ()=> $('modalConn').classList.remove('open');
+$('btnConn').onclick = ()=>{ const c = conn(); $('cnKey').value = c.apiKey||''; $('cnDb').value = c.db||''; say('cnMsg',''); abrir('modalConn'); };
+$('cnCerrar').onclick = ()=> cerrar('modalConn');
 $('cnGuardar').onclick = ()=>{
   const apiKey = $('cnKey').value.trim(), db = $('cnDb').value.trim().replace(/\/+$/, '');
   if(!apiKey) return say('cnMsg','Falta la Web API Key','err');
   if(!dbValida(db)) return say('cnMsg','La URL debe ser https y de firebaseio.com o firebasedatabase.app','err');
   localStorage.setItem(LS, JSON.stringify({apiKey, db}));
-  $('modalConn').classList.remove('open'); say('lgMsg','Conexión guardada. Ya puedes iniciar sesión.','ok');
+  cerrar('modalConn'); say('lgMsg','Conexión guardada. Ya puedes iniciar sesión.','ok');
 };
+if(fijo()) $('btnConn').classList.add('hidden');
 
 /* ---------- autenticación (Firebase Auth REST) ---------- */
 function setAuth(a){
   auth = a;
-  sessionStorage.setItem(SS, JSON.stringify({refreshToken:a.refreshToken, email:a.email}));
+  const dato = JSON.stringify({refreshToken:a.refreshToken, email:a.email});
+  (keepSession ? localStorage : sessionStorage).setItem(SS, dato);
 }
 function errAuth(m){
   m = m || '';
@@ -236,7 +311,10 @@ async function refresh(rt, email){
 }
 async function tk(){
   if(!auth) throw new Error('Inicia sesión');
-  if(Date.now() > auth.exp - 60000) await refresh(auth.refreshToken, auth.email);
+  if(Date.now() > auth.exp - 60000){
+    try{ await refresh(auth.refreshToken, auth.email); }
+    catch(e){ salir('Tu sesión venció. Inicia sesión de nuevo.'); throw e; }
+  }
   return auth.idToken;
 }
 async function dbq(method, path, body){
@@ -246,56 +324,106 @@ async function dbq(method, path, body){
   return r.json();
 }
 
+$('btnVer').onclick = ()=>{
+  const p = $('lgPass'), v = p.type === 'password';
+  p.type = v ? 'text' : 'password'; $('btnVer').textContent = v ? 'Ocultar' : 'Ver';
+};
 $('btnEntrar').onclick = async ()=>{
   const c = conn();
   if(!c.apiKey || !dbValida(c.db)){ say('lgMsg','Primero configura la conexión Firebase','err'); return; }
   const email = $('lgEmail').value.trim(), pass = $('lgPass').value;
   if(!email || !pass){ say('lgMsg','Escribe correo y contraseña','err'); return; }
   $('btnEntrar').disabled = true; say('lgMsg','Entrando…');
-  try{ await signIn(email, pass); $('lgPass').value=''; await iniciarApp(); }
-  catch(e){ say('lgMsg', e.message, 'err'); }
+  try{
+    keepSession = $('lgKeep').checked;
+    await signIn(email, pass);
+    try{ localStorage.setItem(EM, email); }catch(e){}
+    $('lgPass').value = '';
+    await iniciarApp();
+  }catch(e){ say('lgMsg', e.message, 'err'); }
   finally{ $('btnEntrar').disabled = false; }
 };
 $('lgPass').addEventListener('keydown', e=>{ if(e.key==='Enter') $('btnEntrar').click(); });
 
-function salir(){
-  auth = null; gcfg = {}; sessionStorage.removeItem(SS);
-  $('app').classList.add('hidden'); $('login').classList.remove('hidden'); say('lgMsg','');
-  ['cfgToken'].forEach(i=>$(i).value='');
+function salir(msg){
+  auth = null; gcfg = {}; registros = {}; keepSession = false;
+  clearTimeout(idleT);
+  sessionStorage.removeItem(SS); localStorage.removeItem(SS);
+  $('app').classList.add('hidden'); $('login').classList.remove('hidden');
+  ['cfgToken','cfgUid','cfgFijar'].forEach(i=>$(i).value='');
+  $('lista').innerHTML = '';
+  document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
+  say('lgMsg', typeof msg === 'string' ? msg : '');
 }
-$('btnSalir').onclick = salir;
+$('btnSalir').onclick = ()=> salir();
 
 async function iniciarApp(){
   gcfg = (await dbq('GET','config')) || {};
   $('quien').textContent = auth.email;
   $('login').classList.add('hidden'); $('app').classList.remove('hidden');
-  say('lgMsg','');
-  cargarLista();
+  say('lgMsg',''); armarIdle(); cargarLista();
 }
 
-/* ---------- Ajustes GitHub (guardados en Firebase) ---------- */
+/* cierre automático por inactividad */
+function armarIdle(){
+  clearTimeout(idleT);
+  if(!auth) return;
+  idleT = setTimeout(()=>{ if(subiendo) armarIdle(); else salir('Sesión cerrada por inactividad.'); }, IDLE_MS);
+}
+['click','keydown','touchstart'].forEach(ev => document.addEventListener(ev, ()=>{ if(auth) armarIdle(); }, {passive:true}));
+window.addEventListener('beforeunload', e=>{ if(subiendo){ e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Ajustes ---------- */
 function toggleMetodo(){ $('cfgContentsBox').classList.toggle('hidden', $('cfgMetodo').value !== 'contents'); }
 $('cfgMetodo').onchange = toggleMetodo;
 $('btnAjustes').onclick = ()=>{
   $('cfgToken').value = gcfg.token||''; $('cfgOwner').value = gcfg.owner||''; $('cfgRepo').value = gcfg.repo||'';
   $('cfgMetodo').value = gcfg.metodo||'release'; $('cfgBranch').value = gcfg.branch||'main';
   $('cfgCarpeta').value = gcfg.carpeta||'apks'; $('cfgUid').value = auth ? auth.uid : '';
-  toggleMetodo(); say('cfgMsg',''); $('modal').classList.add('open');
+  const c = conn();
+  $('cfgFijar').value = 'const FIREBASE_CONFIG = { apiKey: '+JSON.stringify(c.apiKey||'')+', db: '+JSON.stringify(c.db||'')+' };';
+  $('cfgFijarBox').classList.toggle('hidden', fijo());
+  toggleMetodo(); say('cfgMsg',''); abrir('modal');
 };
-$('cfgCerrar').onclick = ()=> $('modal').classList.remove('open');
-$('cfgGuardar').onclick = async ()=>{
-  const n = {
+$('cfgCopiarLinea').onclick = async ()=>{
+  try{ await navigator.clipboard.writeText($('cfgFijar').value); say('cfgMsg','Línea copiada','ok'); }
+  catch(e){ $('cfgFijar').select(); document.execCommand('copy'); say('cfgMsg','Línea copiada','ok'); }
+};
+$('cfgCerrar').onclick = ()=> cerrar('modal');
+function leerAjustes(){
+  return {
     token:$('cfgToken').value.trim(), owner:$('cfgOwner').value.trim(), repo:$('cfgRepo').value.trim(),
     metodo:$('cfgMetodo').value, branch:$('cfgBranch').value.trim()||'main',
     carpeta:$('cfgCarpeta').value.trim().replace(/^\/+|\/+$/g,'')
   };
-  try{ await dbq('PUT','config',n); gcfg = n; say('cfgMsg','Guardado','ok'); setTimeout(()=>$('modal').classList.remove('open'),600); }
+}
+$('cfgGuardar').onclick = async ()=>{
+  const n = leerAjustes();
+  try{ await dbq('PUT','config',n); gcfg = n; say('cfgMsg','Guardado','ok'); setTimeout(()=>cerrar('modal'),600); }
   catch(e){ say('cfgMsg', e.message, 'err'); }
+};
+$('cfgProbar').onclick = async ()=>{
+  const n = leerAjustes();
+  if(!n.token || !n.owner || !n.repo) return say('cfgMsg','Llena token, usuario y repositorio','err');
+  say('cfgMsg','Probando…');
+  try{
+    const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(n.owner)}/${encodeURIComponent(n.repo)}`, {
+      headers:{Authorization:'Bearer '+n.token, Accept:'application/vnd.github+json'}
+    });
+    if(r.status === 401) throw new Error('El token no es válido o venció');
+    if(r.status === 404) throw new Error('No encuentro el repositorio. Revisa usuario y nombre, y que el token tenga acceso a él.');
+    if(!r.ok) throw await ghError(r);
+    const d = await r.json();
+    if(d.private) return say('cfgMsg','Conecta bien, pero el repositorio es privado: el enlace de descarga no abrirá sin iniciar sesión en GitHub.','err');
+    if(d.permissions && !d.permissions.push) return say('cfgMsg','El token ve el repositorio pero no puede escribir. Falta el permiso Contents: Read and write.','err');
+    say('cfgMsg','Conexión correcta: repositorio público y con permiso de escritura.','ok');
+  }catch(e){ say('cfgMsg', e.message, 'err'); }
 };
 
 /* ---------- archivo ---------- */
 const drop = $('drop');
 drop.onclick = ()=> $('file').click();
+drop.onkeydown = e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); $('file').click(); } };
 drop.ondragover = e=>{ e.preventDefault(); drop.classList.add('over'); };
 drop.ondragleave = ()=> drop.classList.remove('over');
 drop.ondrop = e=>{ e.preventDefault(); drop.classList.remove('over'); elegir(e.dataTransfer.files[0]); };
@@ -308,10 +436,11 @@ function elegir(f){
   $('url').value=''; say('msg','');
 }
 function progreso(p){ $('bar').style.display = p<0 ? 'none' : 'block'; $('barFill').style.width = Math.max(p,0)+'%'; }
-$('btnCancelar').onclick = ()=>{
+function limpiarFormulario(){
   archivo=null; $('file').value=''; $('fileInfo').textContent='';
   ['nombre','nota','url'].forEach(i=>$(i).value=''); say('msg',''); progreso(-1);
-};
+}
+$('btnCancelar').onclick = ()=>{ if(subiendo && ctl){ ctl.abort(); return; } limpiarFormulario(); };
 $('btnCopiar').onclick = async ()=>{
   if(!$('url').value) return;
   try{ await navigator.clipboard.writeText($('url').value); say('msg','URL copiada','ok'); }
@@ -326,28 +455,43 @@ function gh(path, opts={}){
   }});
 }
 async function ghError(r){ let m=r.status; try{ m=(await r.json()).message||m; }catch(e){} return new Error('GitHub: '+m); }
+const abortErr = () => new DOMException('Cancelado','AbortError');
 
-function subirRelease(c, f){
+function subirRelease(c, f, signal){
   return new Promise(async (ok, fail)=>{
+    let rel = null;
+    const limpiar = async ()=>{
+      if(!rel) return;
+      try{
+        await gh(`/repos/${c.owner}/${c.repo}/releases/${rel.id}`, {method:'DELETE'});
+        await gh(`/repos/${c.owner}/${c.repo}/git/refs/tags/${encodeURIComponent(rel.tag_name)}`, {method:'DELETE'});
+      }catch(_){}
+    };
     try{
       const r = await gh(`/repos/${c.owner}/${c.repo}/releases`, {
-        method:'POST', body:JSON.stringify({tag_name:'apk-'+Date.now(), name:$('nombre').value.trim()||f.name, body:$('nota').value, draft:false})
+        method:'POST', signal,
+        body:JSON.stringify({tag_name:'apk-'+Date.now(), name:$('nombre').value.trim()||f.name, body:$('nota').value, draft:false})
       });
       if(!r.ok) throw await ghError(r);
-      const rel = await r.json();
+      rel = await r.json();
+      if(signal.aborted) throw abortErr();
       const xhr = new XMLHttpRequest();
+      const abortar = ()=> xhr.abort();
+      signal.addEventListener('abort', abortar);
+      const terminar = (err)=>{ signal.removeEventListener('abort', abortar); limpiar().then(()=>fail(err)); };
       xhr.open('POST', `https://uploads.github.com/repos/${c.owner}/${c.repo}/releases/${rel.id}/assets?name=${encodeURIComponent(limpio(f.name))}`);
       xhr.setRequestHeader('Authorization','Bearer '+c.token);
       xhr.setRequestHeader('Accept','application/vnd.github+json');
       xhr.setRequestHeader('Content-Type','application/vnd.android.package-archive');
       xhr.upload.onprogress = e=>{ if(e.lengthComputable) progreso(e.loaded/e.total*100); };
       xhr.onload = ()=>{
-        if(xhr.status>=200 && xhr.status<300) ok(JSON.parse(xhr.responseText).browser_download_url);
-        else{ let m=xhr.status; try{ m=JSON.parse(xhr.responseText).message||m; }catch(e){} fail(new Error('GitHub: '+m)); }
+        if(xhr.status>=200 && xhr.status<300){ signal.removeEventListener('abort', abortar); ok(JSON.parse(xhr.responseText).browser_download_url); }
+        else{ let m=xhr.status; try{ m=JSON.parse(xhr.responseText).message||m; }catch(e){} terminar(new Error('GitHub: '+m)); }
       };
-      xhr.onerror = ()=> fail(new Error('Error de red al subir el archivo'));
+      xhr.onerror = ()=> terminar(new Error('Error de red al subir el archivo'));
+      xhr.onabort = ()=> terminar(abortErr());
       xhr.send(f);
-    }catch(e){ fail(e); }
+    }catch(e){ await limpiar(); fail(e); }
   });
 }
 function aBase64(f){
@@ -359,70 +503,172 @@ function aBase64(f){
     rd.readAsDataURL(f);
   });
 }
-async function subirContents(c, f){
+async function subirContents(c, f, signal){
   const b64 = await aBase64(f); progreso(50);
+  if(signal.aborted) throw abortErr();
   const nombre = Date.now()+'-'+limpio(f.name);
   const ruta = (c.carpeta ? c.carpeta+'/' : '')+nombre;
   const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${ruta.split('/').map(encodeURIComponent).join('/')}`, {
-    method:'PUT', body:JSON.stringify({message:'Subir '+nombre, content:b64, branch:c.branch||'main'})
+    method:'PUT', signal, body:JSON.stringify({message:'Subir '+nombre, content:b64, branch:c.branch||'main'})
   });
   if(!r.ok) throw await ghError(r);
   progreso(100);
   return `https://raw.githubusercontent.com/${c.owner}/${c.repo}/${c.branch||'main'}/${ruta}`;
 }
 
-/* ---------- lista ---------- */
-async function cargarLista(){
-  const tb = $('lista');
-  try{
-    const d = (await dbq('GET','apks')) || {};
-    const items = Object.entries(d).sort((a,b)=>(b[1].fecha||0)-(a[1].fecha||0));
-    if(!items.length){ tb.innerHTML='<tr><td colspan="5" class="small">Aún no hay aplicaciones.</td></tr>'; return; }
-    tb.innerHTML = items.map(([k,v])=>`<tr>
-      <td><b>${esc(v.nombre)}</b><div class="small">${esc(v.tamano||'')}</div></td>
-      <td>${esc(v.nota)}</td>
-      <td class="url"><a href="${esc(safeUrl(v.url))}" target="_blank" rel="noopener noreferrer">${esc(v.url)}</a></td>
-      <td class="small">${v.fecha ? esc(new Date(v.fecha).toLocaleString()) : ''}</td>
-      <td><button data-copy="${esc(v.url)}">Copiar</button> <button data-del="${esc(k)}">Quitar</button></td></tr>`).join('');
-  }catch(e){
-    tb.innerHTML = '<tr><td colspan="5" class="err">'+esc(e.message)+'</td></tr>';
+/* borrar el archivo de GitHub a partir de su URL */
+function parseGhUrl(u){
+  let m = (u||'').match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\//);
+  if(m) return {tipo:'release', owner:m[1], repo:m[2], tag:decodeURIComponent(m[3])};
+  m = (u||'').match(/^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
+  if(m) return {tipo:'contents', owner:m[1], repo:m[2], branch:m[3], path:decodeURIComponent(m[4])};
+  return null;
+}
+async function borrarDeGithub(u){
+  const p = parseGhUrl(u);
+  if(!p) throw new Error('No reconozco la URL de GitHub de este registro');
+  if(p.tipo === 'release'){
+    const r = await gh(`/repos/${p.owner}/${p.repo}/releases/tags/${encodeURIComponent(p.tag)}`);
+    if(r.status === 404) return;
+    if(!r.ok) throw await ghError(r);
+    const rel = await r.json();
+    const d = await gh(`/repos/${p.owner}/${p.repo}/releases/${rel.id}`, {method:'DELETE'});
+    if(!d.ok && d.status !== 404) throw await ghError(d);
+    try{ await gh(`/repos/${p.owner}/${p.repo}/git/refs/tags/${encodeURIComponent(p.tag)}`, {method:'DELETE'}); }catch(_){}
+  }else{
+    const ruta = p.path.split('/').map(encodeURIComponent).join('/');
+    const r = await gh(`/repos/${p.owner}/${p.repo}/contents/${ruta}?ref=${encodeURIComponent(p.branch)}`);
+    if(r.status === 404) return;
+    if(!r.ok) throw await ghError(r);
+    const f = await r.json();
+    const d = await gh(`/repos/${p.owner}/${p.repo}/contents/${ruta}`, {
+      method:'DELETE', body:JSON.stringify({message:'Borrar '+p.path, sha:f.sha, branch:p.branch})
+    });
+    if(!d.ok) throw await ghError(d);
   }
 }
+
+/* ---------- lista ---------- */
+async function cargarLista(){
+  try{
+    registros = (await dbq('GET','apks')) || {};
+    pintar();
+  }catch(e){
+    $('lista').innerHTML = '<tr><td colspan="5" class="err">'+esc(e.message)+'</td></tr>';
+  }
+}
+function pintar(){
+  const q = $('buscar').value.trim().toLowerCase();
+  const todos = Object.entries(registros).sort((a,b)=>(b[1].fecha||0)-(a[1].fecha||0));
+  const items = q ? todos.filter(([k,v])=> (v.nombre||'').toLowerCase().includes(q) || (v.nota||'').toLowerCase().includes(q)) : todos;
+  $('conteo').textContent = todos.length ? '('+(q ? items.length+' de ' : '')+todos.length+')' : '';
+  if(!items.length){
+    $('lista').innerHTML = '<tr><td colspan="5" class="small">'+(todos.length ? 'Sin resultados.' : 'Aún no hay aplicaciones.')+'</td></tr>';
+    return;
+  }
+  $('lista').innerHTML = items.map(([k,v])=>`<tr>
+    <td><b>${esc(v.nombre)}</b><div class="small">${esc(v.tamano||'')}</div></td>
+    <td>${esc(v.nota)}</td>
+    <td class="url"><a href="${esc(safeUrl(v.url))}" target="_blank" rel="noopener noreferrer">${esc(v.url)}</a></td>
+    <td class="small">${v.fecha ? esc(new Date(v.fecha).toLocaleString()) : ''}</td>
+    <td class="acc">
+      <button class="sm" data-act="copy" data-id="${esc(k)}">Copiar</button>
+      <button class="sm" data-act="edit" data-id="${esc(k)}">Editar</button>
+      <button class="sm" data-act="del" data-id="${esc(k)}">Quitar</button>
+    </td></tr>`).join('');
+}
+$('buscar').oninput = pintar;
 $('lista').onclick = async e=>{
   const b = e.target.closest('button'); if(!b) return;
-  if(b.dataset.copy){ try{ await navigator.clipboard.writeText(b.dataset.copy); b.textContent='¡Copiado!'; setTimeout(()=>b.textContent='Copiar',1200); }catch(_){} }
-  if(b.dataset.del && confirm('¿Quitar este registro de Firebase? (el archivo seguirá en GitHub)')){
-    try{ await dbq('DELETE','apks/'+encodeURIComponent(b.dataset.del)); }catch(err){ say('msg',err.message,'err'); }
-    cargarLista();
+  const id = b.dataset.id, v = registros[id]; if(!v) return;
+  if(b.dataset.act === 'copy'){
+    try{ await navigator.clipboard.writeText(v.url); b.textContent='¡Copiado!'; setTimeout(()=>b.textContent='Copiar',1200); }catch(_){}
+  }
+  if(b.dataset.act === 'edit'){
+    edId = id; $('edNombre').value = v.nombre||''; $('edNota').value = v.nota||''; say('edMsg',''); abrir('modalEd');
+  }
+  if(b.dataset.act === 'del'){
+    delId = id; $('delNombre').textContent = v.nombre||''; say('delMsg',''); abrir('modalDel');
   }
 };
 
+/* editar */
+$('edCerrar').onclick = ()=> cerrar('modalEd');
+$('edGuardar').onclick = async ()=>{
+  const nombre = $('edNombre').value.trim();
+  if(!nombre) return say('edMsg','Escribe un nombre','err');
+  try{
+    await dbq('PATCH','apks/'+encodeURIComponent(edId), {nombre, nota:$('edNota').value.trim()});
+    cerrar('modalEd'); cargarLista();
+  }catch(e){ say('edMsg', e.message, 'err'); }
+};
+
+/* quitar */
+$('delCerrar').onclick = ()=> cerrar('modalDel');
+async function quitar(conGithub){
+  const v = registros[delId]; if(!v) return;
+  const bs = ['delCerrar','delLista','delTodo'].map($);
+  bs.forEach(b=>b.disabled = true); say('delMsg', conGithub ? 'Borrando de GitHub…' : 'Quitando…');
+  try{
+    if(conGithub){
+      if(!gcfg.token) throw new Error('Falta el token de GitHub en Ajustes');
+      await borrarDeGithub(v.url);
+    }
+    await dbq('DELETE','apks/'+encodeURIComponent(delId));
+    cerrar('modalDel'); await cargarLista();
+  }catch(e){ say('delMsg', e.message, 'err'); }
+  finally{ bs.forEach(b=>b.disabled = false); }
+}
+$('delLista').onclick = ()=> quitar(false);
+$('delTodo').onclick = ()=> quitar(true);
+
 /* ---------- subir ---------- */
 $('btnSubir').onclick = async ()=>{
+  if(subiendo) return;
   if(!archivo) return say('msg','Elige un archivo .apk','err');
-  if(!$('nombre').value.trim()) return say('msg','Escribe un nombre','err');
+  const nombre = $('nombre').value.trim();
+  if(!nombre) return say('msg','Escribe un nombre','err');
   if(!gcfg.token || !gcfg.owner || !gcfg.repo){ say('msg','Falta configurar GitHub en Ajustes','err'); $('btnAjustes').click(); return; }
+  if(gcfg.metodo === 'contents' && archivo.size > 75*1048576) return say('msg','Con el método de carpeta el límite práctico es ~75 MB. Usa Releases en Ajustes.','err');
 
-  $('btnSubir').disabled = true; progreso(0); say('msg','Subiendo a GitHub…');
+  subiendo = true; ctl = new AbortController();
+  $('btnSubir').disabled = true; $('btnCancelar').textContent = 'Cancelar subida';
+  progreso(0); say('msg','Subiendo a GitHub…');
+  let url = '';
   try{
-    const url = gcfg.metodo==='contents' ? await subirContents(gcfg, archivo) : await subirRelease(gcfg, archivo);
+    url = gcfg.metodo === 'contents' ? await subirContents(gcfg, archivo, ctl.signal) : await subirRelease(gcfg, archivo, ctl.signal);
     $('url').value = url;
     say('msg','Guardando en Firebase…');
-    await dbq('POST','apks',{nombre:$('nombre').value.trim(), nota:$('nota').value.trim(), url, archivo:archivo.name.slice(0,200), tamano:fmt(archivo.size), fecha:Date.now()});
+    try{
+      await dbq('POST','apks',{nombre, nota:$('nota').value.trim(), url, archivo:archivo.name.slice(0,200), tamano:fmt(archivo.size), fecha:Date.now()});
+    }catch(e){
+      throw new Error('El archivo se subió a GitHub, pero no se pudo guardar en Firebase ('+e.message+'). Tu URL: '+url);
+    }
     say('msg','Listo. La URL de descarga directa ya está guardada.','ok');
+    $('fileInfo').textContent = 'Subido: '+archivo.name; archivo = null; $('file').value = '';
     cargarLista();
-  }catch(e){ say('msg', e.message || 'Error al subir','err'); }
-  finally{ $('btnSubir').disabled = false; }
+  }catch(e){
+    if(e && e.name === 'AbortError') say('msg','Subida cancelada. No quedó nada en GitHub.');
+    else say('msg', e.message || 'Error al subir', 'err');
+  }finally{
+    subiendo = false; ctl = null;
+    $('btnSubir').disabled = false; $('btnCancelar').textContent = 'Cancelar';
+    setTimeout(()=>{ if(!subiendo) progreso(-1); }, 1500);
+  }
 };
 
 /* ---------- arranque ---------- */
 (async ()=>{
+  try{ const em = localStorage.getItem(EM); if(em) $('lgEmail').value = em; }catch(e){}
   const c = conn();
   if(!c.apiKey || !dbValida(c.db)){ say('lgMsg','Primero configura la conexión Firebase','err'); return; }
   try{
-    const s = JSON.parse(sessionStorage.getItem(SS) || 'null');
+    let raw = localStorage.getItem(SS);
+    keepSession = !!raw;
+    if(!raw) raw = sessionStorage.getItem(SS);
+    const s = JSON.parse(raw || 'null');
     if(s && s.refreshToken){ await refresh(s.refreshToken, s.email); await iniciarApp(); }
-  }catch(e){ sessionStorage.removeItem(SS); }
+  }catch(e){ sessionStorage.removeItem(SS); localStorage.removeItem(SS); }
 })();
 </script>
 </body>
